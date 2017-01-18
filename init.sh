@@ -15,4 +15,5 @@ function create_symbolic_link() {
 create_symbolic_link .screenrc ~/.screenrc
 create_symbolic_link .zshrc ~/.zshrc
 create_symbolic_link .emacs.d ~/.emacs.d
+create_symbolic_link init.lua ~/.hammerspoon/init.lua
 #create_symbolic_link private.xml ~/Library/"Application Support"/Karabiner/private.xml
