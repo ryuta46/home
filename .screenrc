@@ -1,0 +1,26 @@
+defutf8 on
+defencoding utf8
+encoding utf-8 utf-8
+
+escape ^t^t
+
+bind x
+bind ^x
+
+startup_message off
+autodetach on
+vbell off
+
+altscreen on
+
+caption always "%-w%10L>%{=b bw}%n %t%{-}%+w%-0="
+hardstatus alwayslastline "%H%=%Y/%m/%d %02c"
+shelltitle "$ |shell"
+
+bindkey -k kD stuff \177
+
+termcapinfo xterm* ti@:te@
+
+defscrollback 10000
+
+shell $SHELL
