@@ -3,9 +3,10 @@ HISTFILE=~/.histfile
 HISTSIZE=5000
 SAVEHIST=5000
 bindkey -e
+
 # End of lines configured by zsh-newuser-install
 # The following lines were added by compinstall
-zstyle :compinstall filename '/Users/taizo/.zshrc'
+zstyle :compinstall filename "$HOME/.zshrc"
 
 autoload -Uz compinit
 compinit
