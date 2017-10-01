@@ -1,7 +1,22 @@
 
-JIS_LEFT_BRACKET_CODE = 30
-JIS_RIGHT_BRACKET_CODE = 42
 
+local VK_1 = 0x12
+local VK_ESC = 0x35
+
+local VK_JIS_YEN = 0x5d
+local VK_JIS_UNDERSCORE = 0x5e
+
+local VK_JIS_LEFT_BRACKET = 0x1E
+local VK_JIS_RIGHT_BRACKET = 0x2A
+
+local VK_LEFT_COMMAND = 0x37
+local VK_RIGHT_COMMAND = 0x36
+local VK_EISUU = 0x66
+local VK_KANA = 0x68
+
+--
+-- to emacs like keybindins in Xcode
+--
 local function info(message)
     -- hs.alert.show(message)
 end
@@ -106,9 +121,9 @@ commandMode = SubMode.new(
         {modifiers = {ctrl = true}, key = 'f', func = pressKeyFunc({'cmd', 'shift'}, 'o')},
         {modifiers = {ctrl = true}, key = 's', func = pressKeyFunc({'cmd'}, 's')},
         -- next tab
-        {modifiers = {},            key = 'n', func = pressKeyFunc({'cmd', 'shift'}, JIS_RIGHT_BRACKET_CODE)},
+        {modifiers = {},            key = 'n', func = pressKeyFunc({'cmd', 'shift'}, VK_JIS_RIGHT_BRACKET)},
         -- previous tab
-        {modifiers = {},            key = 'p', func = pressKeyFunc({'cmd', 'shift'}, JIS_LEFT_BRACKET_CODE)},
+        {modifiers = {},            key = 'p', func = pressKeyFunc({'cmd', 'shift'}, VK_JIS_LEFT_BRACKET)},
         -- close tab
         {modifiers = {},            key = 'k', func = pressKeyFunc({'cmd'}, 'w')},
     }
@@ -154,8 +169,76 @@ hs.window.filter.new('Xcode')
         commandMode:disable()
     end)
 
--- for debug
+--
+-- to input backslash in JetBrains IDE.
+--
 
+function flagsMatches(flags, modifiers)
+    local set = {}
+    for _, k in ipairs(modifiers) do set[string.lower(k)] = true end
+    for _, k in ipairs({'fn', 'cmd', 'ctrl', 'alt', 'shift'}) do
+        if set[k] ~= flags[k] then return false end
+    end
+    return true
+end
+
+-- NEVER define as local variable!
+jisKeyboardFilter = hs.eventtap.new({
+    hs.eventtap.event.types.keyDown,
+    hs.eventtap.event.types.keyUp
+}, function(event)
+    local c = event:getKeyCode()
+    local f = event:getFlags()
+    -- log.d(...)
+    if c == VK_JIS_YEN then
+        -- To input \ even if JVM, toggle Option key status when Yen key.
+        if flagsMatches(f, {'alt'}) then
+            event:setFlags({})
+        elseif flagsMatches(f, {}) then
+            event:setFlags({alt=true})
+        end
+        -- Hint: Never replace key code to backslash itself because JIS
+        -- keyboard does'nt have phisical backslash and assignes it to close
+        -- bracket (]) key.
+    elseif c == VK_JIS_UNDERSCORE then
+        -- Also map single undetscore (_) key to backslash (\).
+        if flagsMatches(f, {}) then
+            event:setKeyCode(VK_JIS_YEN)
+            event:setFlags({alt=true})
+        end
+    elseif c == VK_1 then
+        -- Customization example: Option+1 => ESC
+        if flagsMatches(f, {'alt'}) then
+            event:setKeyCode(VK_ESC)
+            event:setFlags({})
+        end
+    end
+end)
+jisKeyboardFilter:start()
+
+--
+-- to switch eisuu/kana with single command press.
+--
+local switchInputMethodPrevKey
+
+local function switchInputMethod(e)
+    local keyCode = e:getKeyCode()
+
+    local isCmdKeyUp = not(e:getFlags()['cmd']) and e:getType() == hs.eventtap.event.types.flagsChanged
+    if isCmdKeyUp and switchInputMethodPrevKey == VK_LEFT_COMMAND then
+        hs.eventtap.keyStroke({}, VK_EISUU)
+    elseif isCmdKeyUp and switchInputMethodPrevKey == VK_RIGHT_COMMAND then
+        hs.eventtap.keyStroke({}, VK_KANA)
+    end
+    switchInputMethodPrevKey = keyCode
+end
+
+switchInputMethodEventtap = hs.eventtap.new({hs.eventtap.event.types.flagsChanged, hs.eventtap.event.types.keyDown, hs.eventtap.event.types.keyUp}, switchInputMethod)
+switchInputMethodEventtap:start()
+
+--
+-- for debug
+--
 local function showKeyPress(tapEvent)
     local code = tapEvent:getKeyCode()
     local charactor = hs.keycodes.map[tapEvent:getKeyCode()]
