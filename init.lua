@@ -1,8 +1,4 @@
 
-
-local VK_1 = 0x12
-local VK_ESC = 0x35
-
 local VK_JIS_YEN = 0x5d
 local VK_JIS_UNDERSCORE = 0x5e
 
@@ -198,6 +194,24 @@ hs.window.filter.new('Xcode')
     end)
 
 --
+-- to integrate message send with Cmd + Enter in messenger apps.
+--
+slackSendBindings = hs.eventtap.new( {hs.eventtap.event.types.keyDown},
+    function(e)
+        if hs.keycodes.map[e:getKeyCode()] == 'return' and isEqualTable(e:getFlags(), {cmd = true}) then
+            info("Cmd return -> return")
+            e:setFlags({cmd = false})
+        elseif hs.keycodes.map[e:getKeyCode()] == 'return' and isEqualTable(e:getFlags(), {}) then
+            info("return -> shift + return")
+            e:setFlags({shift = true})
+        end
+    end)
+
+hs.window.filter.new({'Slack', 'Skype'})
+    :subscribe(hs.window.filter.windowFocused,function() slackSendBindings:start() end)
+    :subscribe(hs.window.filter.windowUnfocused,function() slackSendBindings:stop() end)
+
+--
 -- to input backslash in JetBrains IDE.
 --
 
@@ -225,20 +239,11 @@ jisKeyboardFilter = hs.eventtap.new({
         elseif flagsMatches(f, {}) then
             event:setFlags({alt=true})
         end
-        -- Hint: Never replace key code to backslash itself because JIS
-        -- keyboard does'nt have phisical backslash and assignes it to close
-        -- bracket (]) key.
     elseif c == VK_JIS_UNDERSCORE then
         -- Also map single undetscore (_) key to backslash (\).
         if flagsMatches(f, {}) then
             event:setKeyCode(VK_JIS_YEN)
             event:setFlags({alt=true})
-        end
-    elseif c == VK_1 then
-        -- Customization example: Option+1 => ESC
-        if flagsMatches(f, {'alt'}) then
-            event:setKeyCode(VK_ESC)
-            event:setFlags({})
         end
     end
 end)
