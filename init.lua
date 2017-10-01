@@ -15,6 +15,34 @@ local VK_EISUU = 0x66
 local VK_KANA = 0x68
 
 --
+-- to switch eisuu/kana with single command press.
+--
+local switchInputMethodPrevKey
+hs.eventtap.new({hs.eventtap.event.types.flagsChanged}, 
+    function(e) 
+        local keyCode = e:getKeyCode()
+        if e:getFlags()['cmd'] then
+            switchInputMethodPrevKey = keyCode
+        else
+            if switchInputMethodPrevKey == VK_LEFT_COMMAND then
+                hs.eventtap.keyStroke({}, VK_EISUU)
+            elseif switchInputMethodPrevKey == VK_RIGHT_COMMAND then
+                hs.eventtap.keyStroke({}, VK_KANA)
+            end
+        end
+    end
+):start()
+
+-- invalidate previous key
+hs.eventtap.new({hs.eventtap.event.types.keyDown, hs.eventtap.event.types.keyUp}, 
+    function(e) 
+        switchInputMethodPrevKey = 0xFF 
+    end
+):start()
+
+
+
+--
 -- to emacs like keybindins in Xcode
 --
 local function info(message)
@@ -216,25 +244,6 @@ jisKeyboardFilter = hs.eventtap.new({
 end)
 jisKeyboardFilter:start()
 
---
--- to switch eisuu/kana with single command press.
---
-local switchInputMethodPrevKey
-
-local function switchInputMethod(e)
-    local keyCode = e:getKeyCode()
-
-    local isCmdKeyUp = not(e:getFlags()['cmd']) and e:getType() == hs.eventtap.event.types.flagsChanged
-    if isCmdKeyUp and switchInputMethodPrevKey == VK_LEFT_COMMAND then
-        hs.eventtap.keyStroke({}, VK_EISUU)
-    elseif isCmdKeyUp and switchInputMethodPrevKey == VK_RIGHT_COMMAND then
-        hs.eventtap.keyStroke({}, VK_KANA)
-    end
-    switchInputMethodPrevKey = keyCode
-end
-
-switchInputMethodEventtap = hs.eventtap.new({hs.eventtap.event.types.flagsChanged, hs.eventtap.event.types.keyDown, hs.eventtap.event.types.keyUp}, switchInputMethod)
-switchInputMethodEventtap:start()
 
 --
 -- for debug
