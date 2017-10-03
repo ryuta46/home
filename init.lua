@@ -10,14 +10,26 @@ local VK_RIGHT_COMMAND = 0x36
 local VK_EISUU = 0x66
 local VK_KANA = 0x68
 
+
+local showInfo = false
+local function info(message)
+    if showInfo then
+        hs.alert.show(message)
+    end
+end
+hs.hotkey.bind({'cmd', 'shift', 'ctrl'}, 'D', function() showInfo = not(showInfo) end)
 --
 -- to switch eisuu/kana with single command press.
 --
 local switchInputMethodPrevKey
-hs.eventtap.new({hs.eventtap.event.types.flagsChanged}, 
+
+switchInputMethod = hs.eventtap.new({hs.eventtap.event.types.flagsChanged}, 
     function(e) 
         local keyCode = e:getKeyCode()
-        if e:getFlags()['cmd'] then
+        local isCmd = e:getFlags()['cmd']
+        info("flagsChanged code:"..tostring(keyCode))
+        info("flagsChanged flags:"..tostring(isCmd))
+        if isCmd then
             switchInputMethodPrevKey = keyCode
         else
             if switchInputMethodPrevKey == VK_LEFT_COMMAND then
@@ -27,24 +39,23 @@ hs.eventtap.new({hs.eventtap.event.types.flagsChanged},
             end
         end
     end
-):start()
+)
+switchInputMethod:start()
 
 -- invalidate previous key
-hs.eventtap.new({hs.eventtap.event.types.keyDown, hs.eventtap.event.types.keyUp}, 
+switchInputMethodInvalidate = hs.eventtap.new({hs.eventtap.event.types.keyDown, hs.eventtap.event.types.keyUp}, 
     function(e) 
         switchInputMethodPrevKey = 0xFF 
     end
-):start()
+)
+switchInputMethodInvalidate:start()
+
 
 
 
 --
 -- to emacs like keybindins in Xcode
 --
-local function info(message)
-    -- hs.alert.show(message)
-end
-
 local function getTableLength(t)
     local count = 0
     for _ in pairs(t) do count = count + 1 end
@@ -248,7 +259,6 @@ jisKeyboardFilter = hs.eventtap.new({
     end
 end)
 jisKeyboardFilter:start()
-
 
 --
 -- for debug
