@@ -218,7 +218,7 @@ slackSendBindings = hs.eventtap.new( {hs.eventtap.event.types.keyDown},
         end
     end)
 
-hs.window.filter.new({'Slack', 'Skype'})
+hs.window.filter.new({'Slack', 'Skype', 'Discord'})
     :subscribe(hs.window.filter.windowFocused,function() slackSendBindings:start() end)
     :subscribe(hs.window.filter.windowUnfocused,function() slackSendBindings:stop() end)
 
