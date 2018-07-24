@@ -10,7 +10,6 @@ local VK_RIGHT_COMMAND = 0x36
 local VK_EISUU = 0x66
 local VK_KANA = 0x68
 
-
 local showInfo = false
 local function info(message)
     if showInfo then
@@ -21,7 +20,18 @@ hs.hotkey.bind({'cmd', 'shift', 'ctrl'}, 'D', function() showInfo = not(showInfo
 --
 -- to switch eisuu/kana with single command press.
 --
-local switchInputMethodPrevKey
+switchInputMethodPrevKey = 0xFF
+
+-- invalidate previous key
+switchInputMethodInvalidate = hs.eventtap.new({hs.eventtap.event.types.keyDown}, 
+    function(e) 
+        switchInputMethodPrevKey = 0xFF 
+    end
+)
+switchInputMethodInvalidate:start()
+
+repeatedCountOfEisuu = 0
+reverseEisuuKana = false
 
 switchInputMethod = hs.eventtap.new({hs.eventtap.event.types.flagsChanged}, 
     function(e) 
@@ -29,28 +39,33 @@ switchInputMethod = hs.eventtap.new({hs.eventtap.event.types.flagsChanged},
         local isCmd = e:getFlags()['cmd']
         info("flagsChanged code:"..tostring(keyCode))
         info("flagsChanged flags:"..tostring(isCmd))
+
+        local eisuuTrigger = VK_LEFT_COMMAND
+        local kanaTrigger = VK_RIGHT_COMMAND
+        info("is reverse"..tostring(reverseEisuuKana))
+        if reverseEisuuKana then
+            eisuuTrigger = VK_RIGHT_COMMAND
+            kanaTrigger = VK_LEFT_COMMAND
+        end
         if isCmd then
             switchInputMethodPrevKey = keyCode
         else
-            if switchInputMethodPrevKey == VK_LEFT_COMMAND then
+            if switchInputMethodPrevKey == eisuuTrigger then
                 hs.eventtap.keyStroke({}, VK_EISUU)
-            elseif switchInputMethodPrevKey == VK_RIGHT_COMMAND then
+                repeatedCountOfEisuu = 0
+            elseif switchInputMethodPrevKey == kanaTrigger then
                 hs.eventtap.keyStroke({}, VK_KANA)
+                repeatedCountOfEisuu = repeatedCountOfEisuu + 1
+                if repeatedCountOfEisuu >= 5 then
+                    repeatedCountOfEisuu = 0
+                    reverseEisuuKana = not reverseEisuuKana
+                end
+
             end
         end
     end
 )
 switchInputMethod:start()
-
--- invalidate previous key
-switchInputMethodInvalidate = hs.eventtap.new({hs.eventtap.event.types.keyDown, hs.eventtap.event.types.keyUp}, 
-    function(e) 
-        switchInputMethodPrevKey = 0xFF 
-    end
-)
-switchInputMethodInvalidate:start()
-
-
 
 
 --
