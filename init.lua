@@ -16,6 +16,11 @@ local function info(message)
         hs.alert.show(message)
     end
 end
+
+local function warn(message)
+    hs.alert.show(message)
+end
+
 hs.hotkey.bind({'cmd', 'shift', 'ctrl'}, 'D', function() showInfo = not(showInfo) end)
 --
 -- to switch eisuu/kana with single command press.
@@ -211,14 +216,23 @@ xcodeBindings = {
     end),
 }
 
-hs.window.filter.new('Xcode')
-    :subscribe(hs.window.filter.windowFocused,function() enableAll(xcodeBindings) end)
-    :subscribe(hs.window.filter.windowUnfocused,function()
-        disableAll(xcodeBindings)
-        markMode:disable()
-        commandMode:disable()
-    end)
 
+hs.window.filter.new()
+    :subscribe(hs.window.filter.windowFocused,function() 
+        local focused = hs.window.focusedWindow()
+        if focused:application():name() == 'Xcode' then
+            -- warn("Focused XCode")
+            enableAll(xcodeBindings) 
+        else
+            -- warn("Unfocused XCode")
+            disableAll(xcodeBindings)
+            markMode:disable()
+            commandMode:disable()
+        end
+    end)
+   
+
+    
 --
 -- to integrate message send with Cmd + Enter in messenger apps.
 --
@@ -274,6 +288,18 @@ jisKeyboardFilter = hs.eventtap.new({
     end
 end)
 jisKeyboardFilter:start()
+
+
+hs.hotkey.bind({"option"}, "f", function()
+    local app = hs.appfinder.appFromName("Finder")
+    if app ~= nil and app:isFrontmost() then
+        app:hide()
+    else 
+        hs.application.launchOrFocus("Finder")
+    end
+end)
+
+
 
 --
 -- for debug
