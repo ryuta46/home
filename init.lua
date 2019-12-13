@@ -300,6 +300,33 @@ hs.hotkey.bind({"option"}, "f", function()
 end)
 
 
+--
+-- to show hex of selected text.
+--
+function showHexDescription()
+    local elem = hs.uielement.focusedElement()
+    if elem then
+        local sel = elem:selectedText()
+        if (sel == nil or sel == "") then
+            sel = hs.pasteboard.getContents()
+            if (sel == nil or sel == "") then
+                return
+            end
+        end
+
+        selectedNum = tonumber(sel)
+        if selectedNum == nil then
+            return
+        end
+        message = string.format("Base10: %d\nBase16: 0x%X", selectedNum, selectedNum)
+
+        local showSeconds = 5
+        hs.alert.show(message, showSeconds)
+    end
+end
+
+hs.hotkey.bind({'shift', 'ctrl'}, 'h', function() showHexDescription() end)
+
 
 --
 -- for debug
