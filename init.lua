@@ -264,31 +264,6 @@ function flagsMatches(flags, modifiers)
     return true
 end
 
--- NEVER define as local variable!
-jisKeyboardFilter = hs.eventtap.new({
-    hs.eventtap.event.types.keyDown,
-    hs.eventtap.event.types.keyUp
-}, function(event)
-    local c = event:getKeyCode()
-    local f = event:getFlags()
-    -- log.d(...)
-    if c == VK_JIS_YEN then
-        -- To input \ even if JVM, toggle Option key status when Yen key.
-        if flagsMatches(f, {'alt'}) then
-            event:setFlags({})
-        elseif flagsMatches(f, {}) then
-            event:setFlags({alt=true})
-        end
-    elseif c == VK_JIS_UNDERSCORE then
-        -- Also map single undetscore (_) key to backslash (\).
-        if flagsMatches(f, {}) then
-            event:setKeyCode(VK_JIS_YEN)
-            event:setFlags({alt=true})
-        end
-    end
-end)
-jisKeyboardFilter:start()
-
 
 hs.hotkey.bind({"option"}, "f", function()
     local app = hs.appfinder.appFromName("Finder")
