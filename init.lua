@@ -303,6 +303,17 @@ end
 hs.hotkey.bind({'shift', 'ctrl'}, 'h', function() showHexDescription() end)
 
 
+displayUpdate = hs.eventtap.new( {hs.eventtap.event.types.keyDown},
+    function(e)
+        if hs.keycodes.map[e:getKeyCode()] == 'f2' and isEqualTable(e:getFlags(), {cmd = true, fn = true}) then
+            local event = hs.eventtap.event.newSystemKeyEvent("BRIGHTNESS_UP", true)
+            event:setFlags({cmd = true})
+            event:post()
+        end
+    end)
+
+displayUpdate:start()
+
 --
 -- for debug
 --
