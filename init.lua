@@ -229,6 +229,14 @@ hs.window.filter.new()
             markMode:disable()
             commandMode:disable()
         end
+        if focused:application():name() == 'TradingView' then
+            enableAll(tradingViewBindings) 
+        else
+            disableAll(tradingViewBindings)
+            markMode:disable()
+            commandMode:disable()
+        end
+        
     end)
    
 
@@ -313,6 +321,36 @@ displayUpdate = hs.eventtap.new( {hs.eventtap.event.types.keyDown},
     end)
 
 displayUpdate:start()
+
+
+-- for trading view
+tradingViewBindings = {
+    -- mark mode
+    hs.hotkey.new({'ctrl'}, 'space', function() markMode:enable() end),
+    -- command mode
+    hs.hotkey.new({'ctrl'}, 'x', function() commandMode:enable() end),
+
+    -- move to up/down of line. for popup window
+    createKeyRemap({'ctrl'}, 'p', {}, 'up'),
+    createKeyRemap({'ctrl'}, 'n', {}, 'down'),
+
+    -- undo
+    -- createKeyRemap({'ctrl'}, '/', {'cmd'}, 'z'),
+
+    -- search
+    -- createKeyRemap({'ctrl'}, 's', {'cmd'}, 'f'),
+
+    -- paste
+    createKeyRemap({'ctrl'}, 'y', {'cmd'}, 'v'),
+
+    -- kill line
+    hs.hotkey.new({'ctrl'}, 'k', function()
+        markMode:enable()
+        pressKey({'ctrl'}, 'e')
+        pressKey({'ctrl'}, 'w')
+    end),
+}
+
 
 --
 -- for debug
