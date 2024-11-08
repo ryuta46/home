@@ -321,7 +321,7 @@ end
 hs.hotkey.bind({'shift', 'ctrl'}, 'h', function() showHexDescription() end)
 
 --
--- to show hex of selected text.
+-- to show date of selected timestamp.
 --
 function showTimeDescription()
     local targetText = getTargetText()
@@ -332,7 +332,15 @@ function showTimeDescription()
     if targetNum == nil then
         return
     end
-    local formattedTime = os.date("%Y-%m-%d %H:%M:%S", timestamp)
+    local formattedTime
+    if targetNum > 10000000000 then
+        formattedTime = os.date("%Y-%m-%d %H:%M:%S", math.floor(targetNum / 1000))
+        local millis = targetNum % 1000
+        formattedTime = string.format("%s.%03d", formattedTime, millis)
+    else
+        formattedTime = os.date("%Y-%m-%d %H:%M:%S", targetNum)
+    end
+    
     message = string.format("Timestamp: %d\nDate: %s", targetNum, formattedTime)
 
     local showSeconds = 5
