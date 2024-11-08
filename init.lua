@@ -255,7 +255,7 @@ slackSendBindings = hs.eventtap.new( {hs.eventtap.event.types.keyDown},
         end
     end)
 
-hs.window.filter.new({'Slack', 'Skype', 'Discord'})
+hs.window.filter.new({'Skype', 'Discord'})
     :subscribe(hs.window.filter.windowFocused,function() slackSendBindings:start() end)
     :subscribe(hs.window.filter.windowUnfocused,function() slackSendBindings:stop() end)
 
@@ -283,10 +283,7 @@ hs.hotkey.bind({"option"}, "f", function()
 end)
 
 
---
--- to show hex of selected text.
---
-function showHexDescription()
+function getTargetText()
     local elem = hs.uielement.focusedElement()
     if elem then
         local sel = elem:selectedText()
@@ -296,19 +293,54 @@ function showHexDescription()
                 return
             end
         end
-
-        selectedNum = tonumber(sel)
-        if selectedNum == nil then
-            return
-        end
-        message = string.format("Base10: %d\nBase16: 0x%X", selectedNum, selectedNum)
-
-        local showSeconds = 5
-        hs.alert.show(message, showSeconds)
+        return sel
+    else
+        return
     end
 end
 
+
+--
+-- to show hex of selected text.
+--
+function showHexDescription()
+    local targetText = getTargetText()
+    if targetText == nil then
+        return
+    end
+    local targetNum = tonumber(targetText)
+    if targetNum == nil then
+        return
+    end
+    message = string.format("Base10: %d\nBase16: 0x%X", targetNum, targetNum)
+
+    local showSeconds = 5
+    hs.alert.show(message, showSeconds)
+end
+
 hs.hotkey.bind({'shift', 'ctrl'}, 'h', function() showHexDescription() end)
+
+--
+-- to show hex of selected text.
+--
+function showTimeDescription()
+    local targetText = getTargetText()
+    if targetText == nil then
+        return
+    end
+    local targetNum = tonumber(targetText)
+    if targetNum == nil then
+        return
+    end
+    local formattedTime = os.date("%Y-%m-%d %H:%M:%S", timestamp)
+    message = string.format("Timestamp: %d\nDate: %s", targetNum, formattedTime)
+
+    local showSeconds = 5
+    hs.alert.show(message, showSeconds)
+end
+
+
+hs.hotkey.bind({'shift', 'ctrl'}, 't', function() showTimeDescription() end)
 
 
 displayUpdate = hs.eventtap.new( {hs.eventtap.event.types.keyDown},
