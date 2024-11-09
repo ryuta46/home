@@ -351,6 +351,51 @@ end
 hs.hotkey.bind({'shift', 'ctrl'}, 't', function() showTimeDescription() end)
 
 
+
+local function parseHexColor(targetText)
+    targetText = targetText:match("^#?(.*)$")
+    local a, r, g, b
+    if targetText:len() > 6 then
+        a, r, g, b = targetText:match("(%x%x)(%x%x)(%x%x)(%x%x)")
+    else
+        a = nil
+        r, g, b = targetText:match("(%x%x)(%x%x)(%x%x)")
+    end
+    
+    if r and g and b then
+        if a then
+            return tonumber(a, 16), tonumber(r, 16), tonumber(g, 16), tonumber(b, 16)
+        else
+            return nil, tonumber(r, 16), tonumber(g, 16), tonumber(b, 16)
+        end
+    else
+        return nil, nil, nil, nil
+    end
+end
+--
+-- to show color of selected hexstring.
+--
+function showColorDescription()
+    local targetText = getTargetText()
+    if targetText == nil then
+        return
+    end
+    
+    local a, r, g, b = parseHexColor(targetText)
+    
+    if r and g and b then
+        if a == nil then
+            a = 255
+        end
+        message = string.format("A: %d, R: %d, G: %d, B: %d", a, r, g, b)
+        hs.alert.show(message, {fillColor = {alpha = a / 255, red = r / 255, green = g / 255, blue = b / 255}}, 5)
+    end
+  
+end
+
+hs.hotkey.bind({'shift', 'ctrl'}, 'c', function() showColorDescription() end)
+
+
 displayUpdate = hs.eventtap.new( {hs.eventtap.event.types.keyDown},
     function(e)
         if hs.keycodes.map[e:getKeyCode()] == 'f2' and isEqualTable(e:getFlags(), {cmd = true, fn = true}) then
